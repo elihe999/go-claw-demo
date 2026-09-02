@@ -49,7 +49,8 @@ func (e *AgentEngine) Run(ctx context.Context, userPrompt string) error {
 		// 获取当前挂载的所有工具定义
 		availableTools := e.registry.GetAvailableTools()
 
-		// ==================================================================== // Phase 1: 慢思考阶段 (Thinking) - 剥夺工具，强制规划 // ====================================================================
+		// Phase 1: 慢思考阶段 (Thinking) - 剥夺工具，强制规划
+		// ====================================================================
 		if e.EnableThinking {
 			log.Println("[Engine][Phase 1] 剥夺工具访问权，强制进入慢思考与规划阶段...")
 			// 核心机制：传入的 availableTools 为 nil！
@@ -67,7 +68,7 @@ func (e *AgentEngine) Run(ctx context.Context, userPrompt string) error {
 		// ====================================================================
 		// Phase 2: 行动阶段 (Action) - 恢复工具，顺着规划执行
 		// ====================================================================
-
+		log.Println("[Engine][Phase 2] 恢复工具挂载，等待模型采取行动...")
 		actionResp, err := e.provider.Generate(ctx, contextHistory, availableTools)
 		if err != nil {
 			return fmt.Errorf("Action 阶段生成失败: %w", err)
