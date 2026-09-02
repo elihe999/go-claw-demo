@@ -23,3 +23,6 @@ DS_Store
 Thumbs.db
 # 第三方依赖目录
 vendor/
+
+# CH5 读取hello.txt 的测试文件
+hello.txt
