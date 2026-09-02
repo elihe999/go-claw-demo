@@ -3,7 +3,7 @@ package tools
 import (
 	"context"
 
-	"github.com/yourname/go-tiny-claw/internal/schema"
+	"github.com/elihe999/go-claw-demo/internal/schema"
 )
 
 // Registry 定义了工具的注册与分发执行接口

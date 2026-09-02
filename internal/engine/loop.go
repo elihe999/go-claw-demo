@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 
-	"github.com/yourname/go-tiny-claw/internal/provider"
-	"github.com/yourname/go-tiny-claw/internal/schema"
-	"github.com/yourname/go-tiny-claw/internal/tools"
+	"github.com/elihe999/go-claw-demo/internal/provider"
+	"github.com/elihe999/go-claw-demo/internal/schema"
+	"github.com/elihe999/go-claw-demo/internal/tools"
 )
 
 // AgentEngine 是微型 OS 的核心驱动
@@ -79,30 +80,30 @@ func (e *AgentEngine) Run(ctx context.Context, userPrompt string) error {
 		// 4. 执行行动 (Action) 与 获取观察结果 (Observation)
 		log.Printf("[Engine] 模型请求调用 %d 个工具...\n", len(responseMsg.ToolCalls))
 
-		for _, toolCall := range responseMsg.ToolCalls {
-			log.Printf("  -> 🛠️ 执行工具: %s, 参数: %s\n", toolCall.Name, string(toolCall.Arguments))
+		// ext
+		results := make([]schema.Message, len(responseMsg.ToolCalls))
+		var wg sync.WaitGroup
 
-			// 通过 Registry 路由并执行底层工具
-			result := e.registry.Execute(ctx, toolCall)
-
-			if result.IsError {
-				log.Printf("  -> ❌ 工具执行报错: %s\n", result.Output)
-			} else {
-				log.Printf("  -> ✅ 工具执行成功 (返回 %d 字节)\n", len(result.Output))
-			}
-
-			// 将工具执行的观察结果 (Observation) 封装为 User Message 追加到上下文中
-			// 注意：ToolCallID 必须携带！这是维系大模型推理链条的关键
-			observationMsg := schema.Message{
-				Role:       schema.RoleUser,
-				Content:    result.Output,
-				ToolCallID: toolCall.ID,
-			}
-			contextHistory = append(contextHistory, observationMsg)
+		for i, toolCall := range responseMsg.ToolCalls {
+			wg.Add(1)
+			
+			go func(index int, call schema.ToolCall) {
+				defer wg.Done()
+				
+				result := e.registry.Execute(ctx, call)
+				
+				results[index] = schema.Message{
+					Role:       schema.RoleUser,
+					Content:    result.Output,
+					ToolCallID: call.ID,
+				}
+			}(i, toolCall)
 		}
+		
+		wg.Wait()
+		contextHistory = append(contextHistory, results...)
 
 		// 循环回到开头，模型将带着新加入的 Observation 继续它的下一轮思考...
 	}
-
 	return nil
 }
