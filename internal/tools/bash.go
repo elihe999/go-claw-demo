@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/elihe999/go-claw-demo/internal/schema"
@@ -55,8 +56,16 @@ func (t *BashTool) Execute(ctx context.Context, args json.RawMessage) (string, e
 	timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	// 在 macOS/Linux 下，我们通过将指令包裹在 `bash -c` 中执行，以支持环境变量、管道和逻辑与(&&)等复杂 Shell 语法。
-	cmd := exec.CommandContext(timeoutCtx, "bash", "-c", input.Command)
+	// // 在 macOS/Linux 下，我们通过将指令包裹在 `bash -c` 中执行，以支持环境变量、管道和逻辑与(&&)等复杂 Shell 语法。
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		// Windows 环境：使用 powershell 执行
+		// 加上 -NoProfile 可以避免加载冗长的用户脚本，防止命令干扰
+		cmd = exec.CommandContext(timeoutCtx, "powershell", "-NoProfile", "-NonInteractive", "-Command", input.Command)
+	} else {
+		// macOS/Linux 环境：保持使用 bash
+		cmd = exec.CommandContext(timeoutCtx, "bash", "-c", input.Command)
+	}
 
 	// 【驾驭底线 2】：绑定执行的工作区目录
 	// 确保命令默认在用户指定的 WorkDir 下执行，而不是引擎启动时的绝对路径。
