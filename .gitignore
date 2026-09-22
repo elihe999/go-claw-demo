@@ -26,3 +26,6 @@ vendor/
 
 # CH5 读取hello.txt 的测试文件
 hello.txt
+.env
+# CH6 helloworld.go
+helloworld.go

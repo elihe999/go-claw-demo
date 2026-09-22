@@ -50,23 +50,27 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("未加载 .env（将回退到系统环境变量）: %v", err)
 	}
-	if os.Getenv("ZHIPU_API_KEY") == "" {
-		log.Fatal("请先在 .env 中配置 ZHIPU_API_KEY，或导出该环境变量")
-	}
 	workDir, _ := os.Getwd()
 	// 1. 初始化真实的 Provider大脑
 	// 可切换：NewZhipuOpenAIProvider / NewZhipuClaudeProvider / NewAgnesOpenAIProvider
-	// llmProvider := provider.NewZhipuOpenAIProvider("glm-4.7-flash")
-	llmProvider := provider.NewAgnesOpenAIProvider("agnes-2.0-flash")
+	llmProvider := provider.NewZhipuOpenAIProvider("glm-4.7-flash")
+	// llmProvider := provider.NewAgnesOpenAIProvider("agnes-2.0-flash")
+
 	// 3. 初始化真实的 Tool Registry
 	registry := tools.NewRegistry()
+
 	// 4. 将真实的 ReadFile 工具挂载到注册表中
 	readFileTool := tools.NewReadFileTool(workDir)
+	writeFileTool := tools.NewWriteFileTool(workDir)
+	bashTool := tools.NewBashTool(workDir)
 	registry.Register(readFileTool)
-	// 5. 实例化并运行引擎
+	registry.Register(writeFileTool)
+	registry.Register(bashTool)
+
+	// 实例化核心引擎，关闭慢思考阶段，享受 YOLO 急速模式
 	eng := engine.NewAgentEngine(llmProvider, registry, workDir, false)
-	// 设定测试任务
-	prompt := "请调用工具读取一下当前工作区目录下 hello.txt 文件的内容，并用一句话向我总结它说了什么。"
+	// 发起一个需要连贯物理动作的任务
+	prompt := ` 请帮我执行以下操作： 1. 用 bash 查看一下我当前电脑的 Go 版本。 2. 帮我写一个简单的 helloworld.go 文件，输出 "Hello, go-tiny-claw!"。 3. 用 bash 编译并运行这个 go 文件，确认它能正常工作。 `
 	err := eng.Run(context.Background(), prompt)
 	if err != nil {
 		log.Fatalf("引擎运行崩溃: %v", err)
