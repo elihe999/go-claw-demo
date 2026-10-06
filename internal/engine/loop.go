@@ -35,7 +35,7 @@ func (e *AgentEngine) Run(ctx context.Context, userPrompt string) error {
 	log.Printf("[Engine] 引擎启动，锁定工作区: %s\n", e.WorkDir)
 	log.Printf("[Engine] 慢思考模式 (Thinking Phase): %v\n", e.EnableThinking)
 	contextHistory := []schema.Message{
-		{Role: schema.RoleSystem, Content: "You are go-tiny-claw, an expert coding assistant. You have full access to tools in the workspace."},
+		{Role: schema.RoleSystem, Content: "You are go-claw, an expert coding assistant. You have full access to tools in the workspace."},
 		{Role: schema.RoleUser, Content: userPrompt},
 	}
 
