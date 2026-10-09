@@ -6,6 +6,7 @@ import (
 	"log"
 	"sync"
 
+	ctxpkg "github.com/elihe999/go-claw-demo/internal/context" // 引入我们新建的 context 包	"github.com/elihe999/go-claw-demo/internal/provider"
 	"github.com/elihe999/go-claw-demo/internal/provider"
 	"github.com/elihe999/go-claw-demo/internal/schema"
 	"github.com/elihe999/go-claw-demo/internal/tools"
@@ -15,10 +16,10 @@ import (
 type AgentEngine struct {
 	provider provider.LLMProvider
 	registry tools.Registry
-
 	// WorkDir (工作区): 借鉴 OpenClaw 的理念，Agent 必须有一个明确的物理边界
 	WorkDir        string
-	EnableThinking bool // 【新增】慢思考模式开关
+	EnableThinking bool                   // 慢思考模式开关
+	composer       *ctxpkg.PromptComposer // 【新增】引擎持有 Composer 实例，用于动态生成 System Prompt
 }
 
 func NewAgentEngine(p provider.LLMProvider, r tools.Registry, workDir string, enableThinking bool) *AgentEngine {
@@ -27,15 +28,20 @@ func NewAgentEngine(p provider.LLMProvider, r tools.Registry, workDir string, en
 		registry:       r,
 		WorkDir:        workDir,
 		EnableThinking: enableThinking,
+		composer:       ctxpkg.NewPromptComposer(workDir), // 初始化组装器
 	}
 }
 
 // Run 启动 Agent 的生命周期
-func (e *AgentEngine) Run(ctx context.Context, userPrompt string) error {
+func (e *AgentEngine) Run(ctx context.Context, userPrompt string, reporter Reporter) error {
 	log.Printf("[Engine] 引擎启动，锁定工作区: %s\n", e.WorkDir)
-	log.Printf("[Engine] 慢思考模式 (Thinking Phase): %v\n", e.EnableThinking)
+	// log.Printf("[Engine] 慢思考模式 (Thinking Phase): %v\n", e.EnableThinking)
+
+	// CH10: 动态组装 System Prompt
+	systemMsg := e.composer.Build()
+
 	contextHistory := []schema.Message{
-		{Role: schema.RoleSystem, Content: "You are go-claw, an expert coding assistant. You have full access to tools in the workspace."},
+		systemMsg, // 注入动态组装的内核、AGENTS.md 与 Skills
 		{Role: schema.RoleUser, Content: userPrompt},
 	}
 

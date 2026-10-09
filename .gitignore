@@ -30,3 +30,6 @@ hello.txt
 # CH6 helloworld.go
 helloworld.go
 server.go
+
+# CH10 测试skill
+workspace/*

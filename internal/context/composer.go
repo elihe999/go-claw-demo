@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/yourname/go-tiny-claw/internal/schema"
+	"github.com/elihe999/go-claw-demo/internal/schema"
 )
 
 // PromptComposer 负责根据工作区环境动态生成 System Prompt
