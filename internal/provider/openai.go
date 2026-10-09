@@ -121,7 +121,7 @@ func (p *OpenAIProvider) Generate(ctx context.Context, msgs []schema.Message, av
 
 	resp, err := p.client.Chat.Completions.New(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("OpenAI/Zhipu API 请求失败: %w", err)
+		return nil, fmt.Errorf("OpenAI-compatible API 请求失败: %w", err)
 	}
 	if len(resp.Choices) == 0 {
 		return nil, fmt.Errorf("API 返回了空的 Choices")

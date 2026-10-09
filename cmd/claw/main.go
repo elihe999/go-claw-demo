@@ -19,9 +19,10 @@ func main() {
 	workDir += "/workspace"
 
 	// 1. 初始化真实的 Provider大脑
-	// 可切换：NewZhipuOpenAIProvider / NewZhipuClaudeProvider / NewAgnesOpenAIProvider
-	// llmProvider := provider.NewZhipuOpenAIProvider("glm-4.7-flash")
-	llmProvider := provider.NewAgnesOpenAIProvider("agnes-2.0-flash")
+	// 可切换：NewZhipuOpenAIProvider / NewZhipuClaudeProvider / NewAgnesOpenAIProvider / NewOpenRouterProvider
+	llmProvider := provider.NewZhipuOpenAIProvider("glm-4.7-flash")
+	// llmProvider := provider.NewAgnesOpenAIProvider("agnes-2.0-flash")
+	// llmProvider := provider.NewOpenRouterProvider("openrouter/free")
 
 	// 3. 初始化真实的 Tool Registry
 	registry := tools.NewRegistry()
